@@ -26,7 +26,6 @@ class ContentExtractor:
         self.youtube_pattern = re.compile(r'(?:youtube\.com|youtu\.be)')
 
         self.strategies = [
-            ('trafilatura_extraction', self._extract_with_trafilatura),
             ('direct_extraction', self._extract_direct),
             ('readability_extraction', self._extract_with_readability),
             ('beautiful_soup_extraction', self._extract_direct), # Usando _extract_direct como exemplo para BS
@@ -887,53 +886,6 @@ STATUS: Fallback de emergência ativado
             return all([result.scheme, result.netloc]) and result.scheme in ['http', 'https']
         except ValueError:
             return False
-
-    def _extract_with_trafilatura(self, url: str) -> Optional[str]:
-        """Extrai usando Trafilatura com fallback automático para Jina"""
-        try:
-            import trafilatura
-
-            logger.info(f"🔍 Tentando extração com Trafilatura: {url}")
-
-            downloaded = trafilatura.fetch_url(url, config=trafilatura.settings.use_config())
-            if downloaded:
-                content = trafilatura.extract(
-                    downloaded,
-                    include_comments=False,
-                    include_tables=True,
-                    include_formatting=False,
-                    favor_precision=False,
-                    favor_recall=True,
-                    url=url,
-                    include_links=False,
-                    deduplicate=True
-                )
-
-                if content and len(content.strip()) >= self.min_content_length:
-                    logger.info(f"✅ Trafilatura extraiu {len(content)} caracteres de {url}")
-                    return content
-                else:
-                    logger.warning(f"⚠️ Trafilatura: conteúdo insuficiente, tentando Jina como fallback")
-                    return self._extract_with_jina_fallback(url)
-            else:
-                logger.warning(f"⚠️ Trafilatura: download falhou, tentando Jina como fallback")
-                return self._extract_with_jina_fallback(url)
-
-        except ImportError:
-            logger.warning("⚠️ Trafilatura não instalado, usando Jina como fallback")
-            return self._extract_with_jina_fallback(url)
-        except Exception as e:
-            logger.warning(f"⚠️ Trafilatura falhou: {e}, tentando Jina como fallback")
-            return self._extract_with_jina_fallback(url)
-
-    def _extract_with_jina_fallback(self, url: str) -> Optional[str]:
-        """Fallback automático para Jina quando Trafilatura falha"""
-        try:
-            logger.info(f"🔄 Fallback: Tentando extração com Jina: {url}")
-            return self._extract_with_jina(url)
-        except Exception as e:
-            logger.error(f"❌ Jina fallback também falhou: {e}")
-            raise e
 
 
 # Instância global

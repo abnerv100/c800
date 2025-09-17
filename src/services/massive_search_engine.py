@@ -133,48 +133,27 @@ class MassiveSearchEngine:
             massive_data['metadata']['size_kb'] = current_size / 1024
             massive_data['metadata']['apis_used'] = list(set(massive_data['metadata']['apis_used']))
             
-            # Salvar arquivo usando AutoSaveManager centralizado
-            from services.auto_save_manager import auto_save_manager
+            # Salvar arquivo
+            with open(resultado_file, 'w', encoding='utf-8') as f:
+                json.dump(massive_data, f, ensure_ascii=False, indent=2)
             
-            save_result = auto_save_manager.save_massive_search_result(massive_data, produto)
+            logger.info(f"✅ BUSCA MASSIVA REAL CONCLUÍDA - ZERO SIMULAÇÃO!")
+            logger.info(f"📁 Arquivo com dados reais: {resultado_file}")
+            logger.info(f"📊 Tamanho final (dados reais): {current_size/1024:.1f}KB")
+            logger.info(f"🔍 Total de buscas reais: {search_count}")
+            logger.info(f"🔧 APIs reais utilizadas: {len(set(massive_data['metadata']['apis_used']))}")
+            logger.info(f"🚀 100% DADOS REAIS - NENHUMA SIMULAÇÃO")
             
-            if save_result.get('success'):
-                logger.info(f"✅ BUSCA MASSIVA REAL CONCLUÍDA - ZERO SIMULAÇÃO!")
-                logger.info(f"📁 Arquivo com dados reais: {save_result['filename']}")
-                logger.info(f"📊 Tamanho final (dados reais): {save_result['size_kb']:.1f}KB")
-                logger.info(f"🔍 Total de buscas reais: {search_count}")
-                logger.info(f"🔧 APIs reais utilizadas: {len(set(massive_data['metadata']['apis_used']))}")
-                logger.info(f"🚀 100% DADOS REAIS - NENHUMA SIMULAÇÃO")
-                
-                return {
-                    'success': True,
-                    'file_path': save_result['filepath'],
-                    'size_kb': save_result['size_kb'],
-                    'total_searches': search_count,
-                    'apis_used': list(set(massive_data['metadata']['apis_used'])),
-                    'data': save_result['data'],
-                    'data_source': 'REAL_APIS_ONLY',
-                    'simulation_level': 'ZERO'
-                }
-            else:
-                # Fallback para salvamento direto se AutoSaveManager falhar
-                with open(resultado_file, 'w', encoding='utf-8') as f:
-                    json.dump(massive_data, f, ensure_ascii=False, indent=2)
-                
-                logger.warning(f"⚠️ AutoSaveManager falhou, usando salvamento direto: {save_result.get('error')}")
-                logger.info(f"✅ BUSCA MASSIVA REAL CONCLUÍDA - ZERO SIMULAÇÃO!")
-                logger.info(f"📁 Arquivo com dados reais: {resultado_file}")
-                
-                return {
-                    'success': True,
-                    'file_path': resultado_file,
-                    'size_kb': current_size / 1024,
-                    'total_searches': search_count,
-                    'apis_used': list(set(massive_data['metadata']['apis_used'])),
-                    'data': massive_data,
-                    'data_source': 'REAL_APIS_ONLY',
-                    'simulation_level': 'ZERO'
-                }
+            return {
+                'success': True,
+                'file_path': resultado_file,
+                'size_kb': current_size / 1024,
+                'total_searches': search_count,
+                'apis_used': list(set(massive_data['metadata']['apis_used'])),
+                'data': massive_data,
+                'data_source': 'REAL_APIS_ONLY',
+                'simulation_level': 'ZERO'
+            }
             
         except Exception as e:
             logger.error(f"❌ Erro na busca massiva: {e}")

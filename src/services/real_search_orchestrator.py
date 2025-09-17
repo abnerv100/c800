@@ -962,30 +962,15 @@ class RealSearchOrchestrator:
                     if (quality_score >= 30.0 and url and url.startswith('http') and 
                         'example.com' not in url and len(title) > 10):
                         try:
-                            # USA INTERFACE UNIFICADA DO AUTO SAVE MANAGER
-                            from services.auto_save_manager import auto_save_manager
-                            
-                            content_data = {
-                                'url': url,
-                                'titulo': title,
-                                'conteudo': full_content,
-                                'metodo_extracao': provider,
-                                'qualidade': quality_score,
-                                'platform': 'web',
-                                'metadata': {
-                                    'provider': provider,
-                                    'extraction_timestamp': datetime.now().isoformat(),
-                                    'result_index': i,
-                                    'total_results': len(valid_results)
-                                }
-                            }
-                            
-                            save_result = auto_save_manager.save_extracted_content(content_data, session_id)
-                            if save_result.get('success'):
-                                logger.info(f"✅ DADOS REAIS salvos via AutoSaveManager: {url[:50]}...")
-                            else:
-                                logger.error(f"❌ Falha no salvamento via AutoSaveManager: {save_result.get('error')}")
-                                
+                            saved_path = salvar_trecho_pesquisa_web(
+                                url=url,
+                                titulo=title,
+                                conteudo=full_content,
+                                metodo_extracao=provider,
+                                qualidade=quality_score,
+                                session_id=session_id
+                            )
+                            logger.info(f"✅ DADOS REAIS salvos: {saved_path}")
                         except Exception as save_error:
                             logger.error(f"❌ Erro ao salvar resultado REAL {i+1}: {save_error}")
                     else:
